@@ -1,3 +1,36 @@
+# ROS2 Galactic and python bindings for TensorRT
+
+This setup uses Jetpack 4.6.2 (TensorRT 8.2, python binding building support only started in 8).
+
+Working docker image for Xavier NX freshly flashed with Jetpack 4.6.2 (no `apt update` or `apt upgrade`).
+
+```bash
+drun aaroncth/xavier-opencv-pytorch-ros2-galactic-desktop
+drun aaroncth/xavier-opencv-pytorch-ros2-galactic-desktop-pytrt
+```
+
+Using the advice from [this issue](https://github.com/timongentzsch/Jetson_Ubuntu20_Images/issues/12), the `.whl` file was compiled (see `compile_tensorrt_python_bindings.md`), and has been committed under `assets`, users should be able to install the python bindings in the docker images for TensorRT 8.2 by calling,
+
+```bash
+git clone https://github.com/aaronchongth/Jetson_Ubuntu20_Images
+pip3 install Jetson_Ubuntu20_Images/assets/tensorrt-8.2.1.8-cp38-none-linux_aarch64.whl
+```
+
+Other changes that had to be made in `aaroncth/xavier-opencv-pytorch-ros2-galactic-desktop-pytrt` would be the `gcc` and `g++` version, it looks like `gcc-7` and `g++-7` is still preferred when working with `nvcc`. Instructions from [here](https://askubuntu.com/questions/26498/how-to-choose-the-default-gcc-and-g-version) was followed, after running,
+
+```bash
+apt install build-essential
+
+# follow instructions in link
+# afterwards check with
+gcc -v
+g++ -v
+```
+
+Everything below this divider was from the original author.
+
+---
+
 # Hardware accelerated Docker images based on Ubuntu 20.04 for Jetson family
 
   
