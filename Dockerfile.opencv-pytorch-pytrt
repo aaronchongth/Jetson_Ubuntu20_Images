@@ -1,0 +1,33 @@
+FROM timongentzsch/l4t-ubuntu20-pytorch
+
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get install -yqq git build-essential curl wget cmake
+RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.8 1
+
+RUN \
+    EXT_PATH=~/external && \
+    mkdir -p $EXT_PATH && cd $EXT_PATH && \
+    git clone https://github.com/pybind/pybind11.git -b v2.9
+
+RUN \
+    PYTHON_VERSION=`python -c 'import platform;print(platform.python_version())'` && \
+    EXT_PATH=~/external && \
+    mkdir Python-${PYTHON_VERSION} && wget -qO- https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz | tar xvz --strip-components=1 -C Python-${PYTHON_VERSION} && \
+    mkdir -p ${EXT_PATH}/python3.8/include && mv Python-${PYTHON_VERSION}/Include/* ${EXT_PATH}/python3.8/include/ && rm -rf Python-${PYTHON_VERSION} && \
+    cp /usr/include/aarch64-linux-gnu/python3.8/pyconfig.h ~/external/python3.8/include/
+
+RUN \
+    mkdir /workspace && cd /workspace && \
+    git clone https://github.com/NVIDIA/TensorRT.git -b release/8.2 && \
+    mkdir -p /workspace/TensorRT/python/include/onnx
+
+SHELL ["/bin/bash", "-c"]
+RUN \
+    cd /workspace/TensorRT/python && \
+    cp -r /usr/local/cuda-10.2/targets/aarch64-linux/include/* ./include/ && \
+    cp -r /usr/include/aarch64-linux-gnu/* ./include/onnx/ && \
+    EXT_PATH=/root/external PYTHON_MAJOR_VERSION=3 PYTHON_MINOR_VERSION=8 TARGET_ARCHITECTURE=aarch64 ./build.sh && \
+    cp ./build/dist/* /wheel
+    
+CMD ["/bin/bash"]
+WORKDIR /root
